@@ -441,7 +441,7 @@ class StdOutListener(StreamListener):
 		urls = []
 		for url in urls_list:
 			urls.append(url['url'])
-		tweets['tweet_text_urls']
+		tweet['tweet_text_urls'] = urls
 
 
 		tweet['user_id'] = obj['user']['id']
