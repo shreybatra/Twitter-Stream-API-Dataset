@@ -70,6 +70,8 @@ def getTweets():
 
 	
 
+	
+
 
 	filters = {'keyword':key}
 
@@ -123,6 +125,24 @@ def getTweets():
 		prev_url += '&order=' + order_by
 
 
+	date_start = request.args.get('date_start',None)
+	date_end = request.args.get('date_end',None)
+
+	if date_start!=None and date_end!=None:
+		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
+		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
+		next_url += '&date_start=' + date_start
+		prev_url += '&date_end=' + date_end
+		filters['created_at'] = {'$gte':start_time,'$lte':end_time}
+	elif date_start !=None:
+		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
+		next_url += '&date_start=' + date_start
+		filters['created_at'] = {'$gte':start_time}
+	elif date_end !=None:
+		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
+		prev_url += '&date_end=' + date_end
+		filters['created_at'] = {'$lte':end_time}
+
 	search = request.args.get('search',None)
 	if search!=None:
 		search_type = request.args['search_type']
@@ -158,7 +178,7 @@ def getTweets():
 		count = 0;
 		full_find = query
 		for tweet in full_find:
-			
+			#print(hello)
 			if search==None:
 				s.append(tweet)
 				count += 1
@@ -254,7 +274,7 @@ class StdOutListener(StreamListener):
 		tweet['user_time_zone'] = obj['user']['time_zone']
 
 		time_struct = time.strptime(obj['created_at'], "%a %b %d %H:%M:%S +0000 %Y")#Tue Apr 26 08:57:55 +0000 2011
-		tweet['created_at'] = datetime.fromtimestamp(time.mktime(time_struct))
+		tweet['created_at'] = time.mktime(time_struct)
 
 		#print(tweet)
 
