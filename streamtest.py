@@ -68,6 +68,9 @@ def getTweets():
 	favorite_count = int(request.args.get('favorite_count',-1))
 	language = request.args.get('lang',None)
 
+	
+
+
 	filters = {'keyword':key}
 
 	next_url = '/gettweets?keyword=' + str(key)
@@ -120,6 +123,13 @@ def getTweets():
 		prev_url += '&order=' + order_by
 
 
+	search = request.args.get('search',None)
+	if search!=None:
+		search_type = request.args['search_type']
+		search_value = request.args['search_value']
+		next_url += '&search=' + search + '&search_type=' + search_type + '&search_value=' + search_value
+		prev_url += '&search=' + search	+ '&search_type=' + search_type + '&search_value=' + search_value
+
 	next_url += '&limit=' + str(limit) + '&offset=' + str(offset+limit)
 	prev_url += '&limit=' + str(limit) + '&offset=' + str(offset-limit)
 
@@ -148,11 +158,32 @@ def getTweets():
 		count = 0;
 		full_find = query
 		for tweet in full_find:
-			#print(tweet)
-			s.append(tweet)
-			count += 1
-			if count==limit:
-				break
+			
+			if search==None:
+				s.append(tweet)
+				count += 1
+				if count==limit:
+					break
+			else:
+				if search_type=='starts':
+					if tweet[search].startswith(search_value):
+						s.append(tweet)
+						count += 1
+						if count==limit:
+							break
+				elif search_type=='ends':
+					if tweet[search].endswith(search_value):
+						s.append(tweet)
+						count += 1
+						if count==limit:
+							break
+				elif search_type=='contains':
+					if tweet[search].find(search_value)!=-1:
+						s.append(tweet)
+						count += 1
+						if count==limit:
+							break
+
 	except:
 		s = []
 	ans = {}
