@@ -23,10 +23,12 @@ tweets = db.tweets
 
 #------------------TWIITTER---DETAILS--------------
 
-access_token = "777222101556076544-Bji7W4PDJUetIYQUMvAwAfDse2n8STq"
-access_token_secret = "gxJNRMTF4xFuwt95uzw4g2bEQFs19tyJmsepdLjSCo1C3"
-consumer_key ="5x5j9zymoR9AMLbWSocviZ32J"
-consumer_secret = "HPPrlY2pLFxJjJ5zbxbjP9leH1fhyxE312Wa4NO80XZQX8gJ73"
+# ADD YOUR OWN TWITTER APP KEYS HERE...!!!
+
+access_token = "XXXXXXX"
+access_token_secret = "XXXXXX"
+consumer_key ="XXXXXXXX"
+consumer_secret = "XXXXXXXXX"
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
