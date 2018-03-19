@@ -25,10 +25,10 @@ tweets = db.tweets
 
 # ADD YOUR OWN TWITTER APP KEYS HERE...!!!
 
-access_token = "XXXXXXX"
-access_token_secret = "XXXXXX"
-consumer_key ="XXXXXXXX"
-consumer_secret = "XXXXXXXXX"
+access_token = "777222101556076544-mw5VQdczwK9UXiblx8jmA9txP0SPbvv"
+access_token_secret = "fbZ0iV7lJzm3Lzavn4QDBZAwvzmnCDLfxNurbxtJwGUIT"
+consumer_key ="lwmxoeEs981eJvtEoJwvaS8b2"
+consumer_secret = "525gk9HtCMoA4tPbbUc9rAGX3ddyYJp7iAutJKwTKtcXR97Bcd"
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -387,7 +387,7 @@ def downloadtweets():
 	ans['tweets'] = json_util._json_convert(s)
 
 	si = io.StringIO()
-	fieldnames = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', '_id', 'url']
+	fieldnames = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', '_id', 'tweet_text_urls','url']
 	writer = csv.DictWriter(si, fieldnames=fieldnames)
 	writer.writeheader()
 	writer.writerows(s)
