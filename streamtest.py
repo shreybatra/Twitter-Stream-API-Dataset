@@ -58,24 +58,44 @@ def triggertweets():
 	stream.filter(track=[key], async=True)
 	return jsonify({"trigger":"started"})
 
-#--------------Return Tweets--------------------
+#------------ HELPER FUNCTIONS -----------------
 
-@app.route('/gettweets', methods=['GET'])
-def getTweets():
-	key = request.args['keyword']
-	offset = int(request.args.get('offset',0))
-	limit = int(request.args.get('limit',10))
-	
-	name = request.args.get('name',None)
-	screenname = request.args.get('screen_name',None)
-	retweet_count = int(request.args.get('retweet_count',-1))
-	reply_count = int(request.args.get('reply_count',-1))
-	favorite_count = int(request.args.get('favorite_count',-1))
-	language = request.args.get('lang',None)
+def makeTime(date_value):
+	return time.mktime(time.strptime(date_value, "%d_%m_%Y"))
 
-	
 
+def getFilterOptions(filter_fields, default_value, request_args):
+	filter_options = {}
+	for i, filter_name in enumerate(filter_fields):
+		filter_options[filter_name] = request_args.get(filter_name,default_value[i])
+	return filter_options
+
+
+def makeFiltersUrl(filter_options, default_value):
+	filters = {}
+	next_url = ""
+	prev_url = ""
+
+	for i, filter_name in enumerate(filter_options):
+		filter_value = filter_options[filter_name]
+		if filter_value != default_value[i]:
+			filters[filter_name] = filter_value
+			suffix = '&{filter_name}={filter_value}'.format(filter_name=filter_name, filter_value=filter_value)
+			next_url += suffix
+			prev_url += suffix
+
+	return (filters, next_url, prev_url)
+
+
+def doStuff(request_arguments):
+	key = request_arguments['keyword']
+	offset = int(request_arguments.get('offset',0))
+	limit = int(request_arguments.get('limit',10))
 	
+	filter_fields = ['name', 'screenname', 'retweet_count', 'reply_count', 'favorite_count', 'language']
+	default_values = [None, None, -1, -1, -1, None]
+	filter_options = getFilterOptions(filter_fields, default_values, request_arguments)
+
 
 
 	filters = {'keyword':key}
@@ -84,74 +104,58 @@ def getTweets():
 	prev_url = '/gettweets?keyword=' + str(key)
 
 
-	if name!=None:
-		filters['name'] = name
-		next_url += '&name='+name
-		prev_url += '&name='+name
-	if screenname!=None:
-		filters['screen_name'] = screenname
-		next_url += '&screen_name='+screenname
-		prev_url += '&screen_name='+screenname
-	if retweet_count!=-1:
-		filters['retweet_count'] = retweet_count
-		next_url += '&retweet_count=' + str(retweet_count)
-		prev_url += '&retweet_count=' + str(retweet_count)
-	if reply_count!=-1:
-		filters['reply_count'] = reply_count
-		next_url += '&reply_count=' + str(reply_count)
-		prev_url += '&reply_count=' + str(reply_count)
-	if favorite_count!=-1:
-		filters['favorite_count'] = favorite_count
-		next_url += '&favorite_count=' + str(favorite_count)
-		prev_url += '&favorite_count=' + str(favorite_count)
-	if language!=None:
-		filters['lang'] = language
-		next_url += '&lang=' + language
-		prev_url += '&lang=' + language
-	
-	sort_by = request.args.get('sort_by',None)
-	order_by = request.args.get('order','ASC');
+
+	urls_tupl = makeFiltersUrl(filter_options, default_values)
+	filters.update(urls_tupl[0])
+	next_url += urls_tupl[1]
+	prev_url += urls_tupl[2]
+
+
+
+	filter_fields = ['sort_by', 'order']
+	default_values = [None, 'ASC']
+	filter_options = getFilterOptions(filter_fields, default_values, request_arguments)
+
+	sort_by = filter_options['sort_by']
+	order_by = filter_options['order']
+
 	if sort_by==None:
 		sort_by = '_id'
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
-	else:
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
-	
+
 	order = 0
-	if(order_by=='ASC'):
-		order = 0
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
-	else:
+	if order_by != 'ASC':
 		order = 1
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
+
+	sortBySuffix = '&sort_by={sort_by}'.format(sort_by=sort_by)
+	order_bySuffix = '&order={order_by}'.format(order_by=order_by)
+
+	next_url += sortBySuffix + order_bySuffix
+	prev_url += sortBySuffix + order_bySuffix
 
 
-	date_start = request.args.get('date_start',None)
-	date_end = request.args.get('date_end',None)
+
+	date_start = request_arguments.get('date_start',None)
+	date_end = request_arguments.get('date_end',None)
 
 	if date_start!=None and date_end!=None:
-		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
-		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
+		start_time = makeTime(date_start)
+		end_time = makeTime(date_end)
 		next_url += '&date_start=' + date_start
 		prev_url += '&date_end=' + date_end
 		filters['created_at'] = {'$gte':start_time,'$lte':end_time}
 	elif date_start !=None:
-		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
+		start_time = makeTime(date_start)
 		next_url += '&date_start=' + date_start
 		filters['created_at'] = {'$gte':start_time}
 	elif date_end !=None:
-		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
+		end_time = makeTime(date_end)
 		prev_url += '&date_end=' + date_end
 		filters['created_at'] = {'$lte':end_time}
 
-	search = request.args.get('search',None)
+	search = request_arguments.get('search',None)
 	if search!=None:
-		search_type = request.args['search_type']
-		search_value = request.args['search_value']
+		search_type = request_arguments['search_type']
+		search_value = request_arguments['search_value']
 		next_url += '&search=' + search + '&search_type=' + search_type + '&search_value=' + search_value
 		prev_url += '&search=' + search	+ '&search_type=' + search_type + '&search_value=' + search_value
 
@@ -220,6 +224,15 @@ def getTweets():
 	if offset-limit>=0:
 		ans['prev_url'] = prev_url
 	ans['tweets'] = json_util._json_convert(s)
+	return s, ans
+
+
+
+#--------------Return Tweets--------------------
+
+@app.route('/gettweets', methods=['GET'])
+def getTweets():
+	s, ans = doStuff(request.args)
 	return jsonify(ans)
 
 
@@ -227,164 +240,7 @@ def getTweets():
 
 @app.route('/download/gettweets', methods=['GET'])
 def downloadtweets():
-	key = request.args['keyword']
-	offset = int(request.args.get('offset',0))
-	limit = int(request.args.get('limit',10))
-	
-	name = request.args.get('name',None)
-	screenname = request.args.get('screen_name',None)
-	retweet_count = int(request.args.get('retweet_count',-1))
-	reply_count = int(request.args.get('reply_count',-1))
-	favorite_count = int(request.args.get('favorite_count',-1))
-	language = request.args.get('lang',None)
-
-	
-
-	
-
-
-	filters = {'keyword':key}
-
-	next_url = '/gettweets?keyword=' + str(key)
-	prev_url = '/gettweets?keyword=' + str(key)
-
-
-	if name!=None:
-		filters['name'] = name
-		next_url += '&name='+name
-		prev_url += '&name='+name
-	if screenname!=None:
-		filters['screen_name'] = screenname
-		next_url += '&screen_name='+screenname
-		prev_url += '&screen_name='+screenname
-	if retweet_count!=-1:
-		filters['retweet_count'] = retweet_count
-		next_url += '&retweet_count=' + str(retweet_count)
-		prev_url += '&retweet_count=' + str(retweet_count)
-	if reply_count!=-1:
-		filters['reply_count'] = reply_count
-		next_url += '&reply_count=' + str(reply_count)
-		prev_url += '&reply_count=' + str(reply_count)
-	if favorite_count!=-1:
-		filters['favorite_count'] = favorite_count
-		next_url += '&favorite_count=' + str(favorite_count)
-		prev_url += '&favorite_count=' + str(favorite_count)
-	if language!=None:
-		filters['lang'] = language
-		next_url += '&lang=' + language
-		prev_url += '&lang=' + language
-	
-	sort_by = request.args.get('sort_by',None)
-	order_by = request.args.get('order','ASC');
-	if sort_by==None:
-		sort_by = '_id'
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
-	else:
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
-	
-	order = 0
-	if(order_by=='ASC'):
-		order = 0
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
-	else:
-		order = 1
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
-
-
-	date_start = request.args.get('date_start',None)
-	date_end = request.args.get('date_end',None)
-
-	if date_start!=None and date_end!=None:
-		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
-		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
-		next_url += '&date_start=' + date_start
-		prev_url += '&date_end=' + date_end
-		filters['created_at'] = {'$gte':start_time,'$lte':end_time}
-	elif date_start !=None:
-		start_time = time.mktime(time.strptime(date_start, "%d_%m_%Y"))
-		next_url += '&date_start=' + date_start
-		filters['created_at'] = {'$gte':start_time}
-	elif date_end !=None:
-		end_time = time.mktime(time.strptime(date_end, "%d_%m_%Y"))
-		prev_url += '&date_end=' + date_end
-		filters['created_at'] = {'$lte':end_time}
-
-	search = request.args.get('search',None)
-	if search!=None:
-		search_type = request.args['search_type']
-		search_value = request.args['search_value']
-		next_url += '&search=' + search + '&search_type=' + search_type + '&search_value=' + search_value
-		prev_url += '&search=' + search	+ '&search_type=' + search_type + '&search_value=' + search_value
-
-	next_url += '&limit=' + str(limit) + '&offset=' + str(offset+limit)
-	prev_url += '&limit=' + str(limit) + '&offset=' + str(offset-limit)
-
-
-	if order==0:
-		query = tweets.find(filters).sort(sort_by,pymongo.ASCENDING)
-	else:
-		query = tweets.find(filters).sort(sort_by,pymongo.DESCENDING)
-
-	
-	starting_id = query
-	try:
-		last_id = starting_id[offset]['_id']
-	except:
-		last_id= 0
-
-
-	if order==0:
-		filters['_id'] = {'$gte':last_id}
-	else:
-		filters['_id'] = {'$lte':last_id}
-	
-	s = []
-	
-	try:
-		count = 0;
-		full_find = query
-		for tweet in full_find:
-			#print(hello)
-			if search==None:
-				s.append(tweet)
-				count += 1
-				if count==limit:
-					break
-			else:
-				if search_type=='starts':
-					if tweet[search].startswith(search_value):
-						s.append(tweet)
-						count += 1
-						if count==limit:
-							break
-				elif search_type=='ends':
-					if tweet[search].endswith(search_value):
-						s.append(tweet)
-						count += 1
-						if count==limit:
-							break
-				elif search_type=='contains':
-					if tweet[search].find(search_value)!=-1:
-						s.append(tweet)
-						count += 1
-						if count==limit:
-							break
-
-	except:
-		s = []
-	ans = {}
-	ans['tweet_count'] = len(s)
-	ans['limit'] = limit
-	ans['offset'] = offset
-	if offset+limit<=len(s):
-		ans['next_url'] = next_url
-	if offset-limit>=0:
-		ans['prev_url'] = prev_url
-	ans['tweets'] = json_util._json_convert(s)
+	s, ans = doStuff(request.args)
 
 	si = io.StringIO()
 	fieldnames = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', '_id', 'tweet_text_urls','url']
@@ -395,8 +251,6 @@ def downloadtweets():
 	output.headers["Content-Disposition"] = "attachment; filename=export.csv"
 	output.headers["Content-type"] = "text/csv"
 	return output
-	#return jsonify(ans)
-	
 
 
 
