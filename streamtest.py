@@ -58,6 +58,21 @@ def triggertweets():
 	stream.filter(track=[key], async=True)
 	return jsonify({"trigger":"started"})
 
+
+#--------------Add to URLs--------------------------------
+
+def addToURLs(url_name,url_value,next_url,prev_url):
+    next_url += '&'+str(url_name)+'='+url_value
+    prev_url += '&'+str(url_name)+'='+url_value
+    return next_url,prev_url
+
+#--------------Add to Filters & URLs-----------------------
+
+def addToFilterURLs(url_name,url_value,next_url,prev_url):
+    filters[str(url_name)] = url_value
+	next_url,prev_url = addToURLs(url_name,url_value,next_url,prev_url)
+    return next_url,prev_url
+
 #--------------Return Tweets--------------------
 
 @app.route('/gettweets', methods=['GET'])
@@ -73,10 +88,6 @@ def getTweets():
 	favorite_count = int(request.args.get('favorite_count',-1))
 	language = request.args.get('lang',None)
 
-	
-
-	
-
 
 	filters = {'keyword':key}
 
@@ -84,51 +95,32 @@ def getTweets():
 	prev_url = '/gettweets?keyword=' + str(key)
 
 
+	""" Removed the redundant code and added a function """
 	if name!=None:
-		filters['name'] = name
-		next_url += '&name='+name
-		prev_url += '&name='+name
+	    next_url,prev_url = addURLs('name',name,next_url,prev_url)
 	if screenname!=None:
-		filters['screen_name'] = screenname
-		next_url += '&screen_name='+screenname
-		prev_url += '&screen_name='+screenname
+        next_url,prev_url = addURLs('screen_name',screenname,next_url,prev_url)
 	if retweet_count!=-1:
-		filters['retweet_count'] = retweet_count
-		next_url += '&retweet_count=' + str(retweet_count)
-		prev_url += '&retweet_count=' + str(retweet_count)
+		next_url,prev_url = addURLs('retweet_count',retweet_count,next_url,prev_url)
 	if reply_count!=-1:
-		filters['reply_count'] = reply_count
-		next_url += '&reply_count=' + str(reply_count)
-		prev_url += '&reply_count=' + str(reply_count)
+		next_url,prev_url = addURLs('reply_count', reply_count,next_url,prev_url)
 	if favorite_count!=-1:
-		filters['favorite_count'] = favorite_count
-		next_url += '&favorite_count=' + str(favorite_count)
-		prev_url += '&favorite_count=' + str(favorite_count)
+		next_url,prev_url = addURLs('favorite_count',favorite_count,next_url,prev_url)
 	if language!=None:
-		filters['lang'] = language
-		next_url += '&lang=' + language
-		prev_url += '&lang=' + language
+		next_url,prev_url = addURLs('lang', language,next_url,prev_url)
 	
 	sort_by = request.args.get('sort_by',None)
 	order_by = request.args.get('order','ASC');
 	if sort_by==None:
 		sort_by = '_id'
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
-	else:
-		next_url += '&sort_by=' + sort_by
-		prev_url += '&sort_by=' + sort_by
+    next_url, prev_url = addToURLs('sort_by',sort_by,next_url,prev_url)	# Removed the redundant code and added a function
 	
 	order = 0
 	if(order_by=='ASC'):
-		order = 0
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
+		order = 
 	else:
 		order = 1
-		next_url += '&order=' + order_by
-		prev_url += '&order=' + order_by
-
+    next_url, prev_url = addToURLs('order',order,next_url,prev_url)
 
 	date_start = request.args.get('date_start',None)
 	date_end = request.args.get('date_end',None)
