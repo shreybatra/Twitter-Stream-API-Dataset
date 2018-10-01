@@ -60,7 +60,7 @@ def triggertweets():
 
 #--------------New Function--------------------
 
-def func():
+def get_tweets_from_db():
 	key = request.args['keyword']
 	offset = int(request.args.get('offset',0))
 	limit = int(request.args.get('limit',10))
@@ -224,7 +224,7 @@ def func():
 #--------------Return Tweets--------------------
 @app.route('/gettweets', methods=['GET'])
 def getTweets():
-	ans=func()
+	ans=get_tweets_from_db()
 	return jsonify(ans)
 
 
@@ -232,7 +232,7 @@ def getTweets():
 
 @app.route('/download/gettweets', methods=['GET'])
 def downloadtweets():
-	ans=func()
+	ans=get_tweets_from_db()
 	si = io.StringIO()
 	fieldnames = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', '_id', 'tweet_text_urls','url']
 	writer = csv.DictWriter(si, fieldnames=fieldnames)
