@@ -107,6 +107,10 @@ def get_tweets_from_db():
 		filters['lang'] = language
 		next_url += '&lang=' + language
 		prev_url += '&lang=' + language
+	if follow!=None:
+		filters['follow'] = follow
+		next_url += '&follow' + str(follow)
+		prev_url += '&follow' + str(follow)
 	
 	sort_by = request.args.get('sort_by',None)
 	order_by = request.args.get('order','ASC');
