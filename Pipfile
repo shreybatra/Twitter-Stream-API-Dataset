@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tweepy = "*"
+pymongo = "*"
+flask = "*"
+
+[dev-packages]
+pylint = "*"
+"flake8" = "*"
+yapf = "*"
+
+[requires]
+python_version = "3.6"
