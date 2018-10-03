@@ -225,7 +225,7 @@ def get_tweets_from_db():
 @app.route('/gettweets', methods=['GET'])
 def getTweets():
 	ans=get_tweets_from_db()
-	return jsonify(ans)
+	return ans
 
 
 #--------------DOWNLOAD-ENDPOINT---------------
