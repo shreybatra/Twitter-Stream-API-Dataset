@@ -38,7 +38,12 @@ auth.set_access_token(access_token, access_token_secret)
 
 app = Flask(__name__)
 
+"""
+hello()
 
+returns: json file with 'hello' and 'world' in it
+
+"""
 @app.route('/',methods=['GET'])
 def hello():
 	return jsonify({'hello':'world'})
@@ -46,6 +51,11 @@ def hello():
 #-------------TRIGGER------------------------
 
 @app.route('/triggertweets',methods=['GET'])
+"""
+triggertweets()
+
+returns: json file with 'triiger' and 'started' in it
+"""
 def triggertweets():
 	key = request.args['keyword']
 	if key==None:
@@ -64,7 +74,7 @@ def get_tweets_from_db():
 	key = request.args['keyword']
 	offset = int(request.args.get('offset',0))
 	limit = int(request.args.get('limit',10))
-	
+
 	name = request.args.get('name',None)
 	screenname = request.args.get('screen_name',None)
 	retweet_count = int(request.args.get('retweet_count',-1))
@@ -72,9 +82,9 @@ def get_tweets_from_db():
 	favorite_count = int(request.args.get('favorite_count',-1))
 	language = request.args.get('lang',None)
 
-	
 
-	
+
+
 
 
 	filters = {'keyword':key}
@@ -107,7 +117,7 @@ def get_tweets_from_db():
 		filters['lang'] = language
 		next_url += '&lang=' + language
 		prev_url += '&lang=' + language
-	
+
 	sort_by = request.args.get('sort_by',None)
 	order_by = request.args.get('order','ASC');
 	if sort_by==None:
@@ -117,7 +127,7 @@ def get_tweets_from_db():
 	else:
 		next_url += '&sort_by=' + sort_by
 		prev_url += '&sort_by=' + sort_by
-	
+
 	order = 0
 	if(order_by=='ASC'):
 		order = 0
@@ -163,7 +173,7 @@ def get_tweets_from_db():
 	else:
 		query = tweets.find(filters).sort(sort_by,pymongo.DESCENDING)
 
-	
+
 	starting_id = query
 	try:
 		last_id = starting_id[offset]['_id']
@@ -175,9 +185,9 @@ def get_tweets_from_db():
 		filters['_id'] = {'$gte':last_id}
 	else:
 		filters['_id'] = {'$lte':last_id}
-	
+
 	s = []
-	
+
 	try:
 		count = 0;
 		full_find = query
@@ -243,7 +253,7 @@ def downloadtweets():
 	output.headers["Content-type"] = "text/csv"
 	return output
 	#return jsonify(ans)
-	
+
 
 
 
@@ -251,7 +261,7 @@ def downloadtweets():
 
 
 class StdOutListener(StreamListener):
-	
+
 	count = 0
 	keyword = ""
 	max_tweets = 0
@@ -264,7 +274,7 @@ class StdOutListener(StreamListener):
 	def on_data(self,data):
 
 		obj = json.loads(data)
-		
+
 		tweet = {}
 		tweet['keyword'] = self.keyword
 
@@ -276,7 +286,7 @@ class StdOutListener(StreamListener):
 		tweet['reply_count'] = obj['reply_count']
 		tweet['favorite_count'] = obj['favorite_count']
 
-		
+
 
 		#print(tweet['created_at'])
 
