@@ -25,10 +25,10 @@ tweets = db.tweets
 
 # ADD YOUR OWN TWITTER APP KEYS HERE...!!!
 
-access_token = "XXXXXXXX"
-access_token_secret = "XXXXXXXXX"
-consumer_key ="XXXXXXXXX"
-consumer_secret = "XXXXXXXXXX"
+access_token = "XXXXXXXXXXX"
+access_token_secret = "XXXXXXXXXXX"
+consumer_key ="XXXXXXXXXXX"
+consumer_secret = "XXXXXXXXXXX"
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -211,6 +211,11 @@ def get_tweets_from_db():
 	except:
 		s = []
 	ans = {}
+	t=[]
+	for item in s:
+		item.pop('_id')
+		t.append(item)
+	print (t)
 	ans['tweet_count'] = len(s)
 	ans['limit'] = limit
 	ans['offset'] = offset
@@ -218,14 +223,14 @@ def get_tweets_from_db():
 		ans['next_url'] = next_url
 	if offset-limit>=0:
 		ans['prev_url'] = prev_url
-	ans['tweets'] = json_util._json_convert(s)
-	return jsonify(ans)
+	ans['tweets'] = t
+	return ans
 
 #--------------Return Tweets--------------------
 @app.route('/gettweets', methods=['GET'])
 def getTweets():
 	ans=get_tweets_from_db()
-	return ans
+	return jsonify(ans)
 
 
 #--------------DOWNLOAD-ENDPOINT---------------
@@ -234,18 +239,17 @@ def getTweets():
 def downloadtweets():
 	ans=get_tweets_from_db()
 	si = io.StringIO()
-	fieldnames = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', '_id', 'tweet_text_urls','url']
-	writer = csv.DictWriter(si, fieldnames=fieldnames)
+	field_names = ['retweet_count', 'user_friends_count', 'created_at', 'user_followers_count', 'reply_count', 'name', 'location', 'keyword', 'favorite_count', 'user_time_zone', 'tweet_hashtags', 'lang', 'user_id', 'text', 'user_description', 'screen_name', 'retweeted', 'timestamp_ms', 'tweet_text_urls','url']
+	writer = csv.DictWriter(si, fieldnames=field_names)
 	writer.writeheader()
-	writer.writerows(s)
+	#print(ans['tweets'])
+	writer.writerows(ans['tweets'])
 	output = make_response(si.getvalue())
 	output.headers["Content-Disposition"] = "attachment; filename=export.csv"
 	output.headers["Content-type"] = "text/csv"
 	return output
 	#return jsonify(ans)
 	
-
-
 
 #----------------TWEEPY STREAM LISTENER----------------------------
 
