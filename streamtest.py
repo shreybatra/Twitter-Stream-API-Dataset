@@ -1,3 +1,4 @@
+import tweepy
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -32,7 +33,7 @@ consumer_secret = "XXXXXXXXXXX"
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-
+api = tweepy.API(auth)
 
 #----------------FLASK---ENDPOINTS-------------------
 
@@ -54,8 +55,9 @@ def triggertweets():
 
 	#print(key)
 	l = StdOutListener(key,max_tweets)
-	stream = Stream(auth, l)
-	stream.filter(track=[key], async=True)
+	stream = Stream(api.auth, l)
+	stream.filter(track=[key])
+	# stream.filter(track=[key], async=True)
 	return jsonify({"trigger":"started"})
 
 #--------------New Function--------------------
