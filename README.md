@@ -1,5 +1,7 @@
 # Twitter-Stream-API-Dataset
 
+[![HitCount](http://hits.dwyl.io/shreybatra/Twitter-Stream-API-Dataset.svg)](http://hits.dwyl.io/shreybatra/Twitter-Stream-API-Dataset)
+
 This Script will help user to stream/search/download tweets based on different tracks, search parameters, etc.
 
 This script is developed in Python 3.6 using the following packages :
